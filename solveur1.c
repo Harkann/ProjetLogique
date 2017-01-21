@@ -2,24 +2,63 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void next_env(char* tab_var, int nvariables){
-	for (int i = 0; i < nvariables; ++i){
-
+int next_env(int* tab_var, int nvariables){
+	int retenue = 1;
+	for (int i = nvariables-1 ; i > -1 ; --i){
+		if ((tab_var[i] + retenue) == 1){
+			tab_var[i] = 1;
+			retenue = 0;
+		}
+		else if ((tab_var[i] + retenue) == 2){
+			tab_var[i] = 0;
+			retenue = 1;
+		}
+		else {
+			tab_var[i] = 0;
+			retenue = 0;
+		}
 	}
+	return retenue;
 }
 
-int solve(char** tab_clauses, int nclauses, int nvariables){
-	char* tab_var[nvariables];
+int solve(int n, int(*tab_clauses)[n] , int nclauses, int nvariables){
 	int sat = 0;
-	for (int i = 0; i < 2**nvariables; ++i)
+	int valueVars[nvariables];
+	for (int i = 0; i < nvariables; ++i)
 	{
+		valueVars[i] = 0;
 	}
+	int retenue = 0;
+	int sommeClauses = 0;
+	while( retenue == 0){
+		for (int i = 0; i < nclauses; ++i)
+		{
+			int valueClausei = 0 ;
+			for (int j = 0; j < sizeof(tab_clauses[i])/sizeof(int); ++j)
+			{
 
+				int litteral = tab_clauses[i][j];
+				printf("%d\n", litteral );
 
-
-
+				if (tab_clauses[i][j] < 0){
+					valueClausei = valueClausei || ~(valueVars[-litteral]);
+				}
+				else {
+					valueClausei = valueClausei || (valueVars[litteral-1]) ;
+				}				
+			}
+			if (valueClausei == 1){
+				sommeClauses++;
+			}
+		}
+		if (sommeClauses == nclauses){
+			sat = 1;
+			break;
+		}
+		retenue = next_env(valueVars, nvariables);
+	}
 	if (sat){
-		printf("SAT\n %s\n", tab_var);
+		printf("SAT\n");
 	}
 	else {
 		printf("UNSAT\n");
@@ -27,51 +66,43 @@ int solve(char** tab_clauses, int nclauses, int nvariables){
 	return 0;
 }
 
-
-
-
-
-
-int main (int argc, char* argv[]){
-	if (argc > 1){
-		if (strcmp(argv[1],"p") == 0){
-			if (argc>2 && strcmp(argv[2],"cnf") == 0){
-				int nclauses = atoi(argv[3]);
-				int nvariables = atoi(argv[4]);
-				printf("%d clauses et %d variables\n",nclauses,nvariables);
-				char** tab_clauses[nclauses];
-				int iclause = 0;
-				char* clause; 
-				for (int i = 3; i < argc; ++i)
-				{
-					if (argv[i] != 0){
-						char* new_clause;
-						new_clause = malloc(strlen(clause)+2);
-						strcpy(new_clause, clause);
-						strcat(new_clause, argv[i]);
-						clause = malloc(strlen(new_clause)+1);
-						strcpy(clause, new_clause);
-					}
-					else if (i != argc-1){
-						tab_clauses[iclause] = clause;
-						free(clause);
-					}
-					else {
-						tab_clauses[iclause] = clause;
-					}
+int parse(int nbarg, char* args[]){
+	int nlitteraux ;
+	int nclauses ;
+	//int* clauses = NULL;
+	if (nbarg > 1){
+		if (strcmp(args[1],"p") == 0){
+			if (nbarg>4){
+				if (strcmp(args[2],"cnf") == 0){
+					nlitteraux = atoi(args[3]);
+					nclauses = atoi(args[4]);
+					//clauses = malloc(nclauses * sizeof(int));
+					printf("%d litteraux et %d clauses\n",nlitteraux,nclauses);
 				}
 			}
 			else {
 				printf("Pas CNF");
 			}
 		}
-		else if (strcmp(argv[1],"c") == 0){
+		else if (strcmp(args[1],"c") == 0){
 			printf("Commentaire");
 		}
 	}
 	else {
 		printf("Pas d'arguments");
 	}
+	return 0;
+}
+
+
+
+
+int main (int argc, char* argv[]){
+	int cnf[][2] = {{1, 1}};
+	int n = 2;
+	solve(n, cnf, 1, 1);
+	return 0;
+	
 
 
 }
