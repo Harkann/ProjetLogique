@@ -1,41 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "parseur.h"
 
-
-
-typedef struct nodeLit {
-	int val;
-	struct nodeLit * nextLit;
-} litteral;
-
-typedef struct nodeClause {
-	litteral* lit;
-	struct nodeClause * nextClause;
-} clause;
-
-typedef struct CNF {
-	clause* clse;
-	int nblit;
-	int nbclse;
-} cnf;
-
-void printCNF(cnf* formuleCNF){
-	clause* currentClause = formuleCNF->clse;
-	while(currentClause != NULL){
-		printf("clause\n");
-		litteral* currentLit = currentClause->lit;
-		while(currentLit != NULL){
-			printf("%d\n", currentLit->val);
-			currentLit = currentLit->nextLit;
-		}
-		currentClause = currentClause->nextClause;
-	}
-	printf("fin\n");
-}
-
-
-/*
 int next_env(int* tab_var, int nvariables){
 	int retenue = 1;
 	for (int i = nvariables-1 ; i > -1 ; --i){
@@ -56,10 +23,10 @@ int next_env(int* tab_var, int nvariables){
 }
 
 // Solveur naïf
-int solve(cnf* formuleCNF, int nvariables){
+int solve(cnf* formuleCNF, int* valueVars){
 	int sat = 0;
-
-	for (int i = 0; i < nvariables; ++i)
+	//valueVars = malloc(P_nlit(formuleCNF)*sizeof(int));
+	for (int i = 0; i < P_nlit(formuleCNF); ++i)
 	{
 		valueVars[i] = 0;
 	}
@@ -67,120 +34,65 @@ int solve(cnf* formuleCNF, int nvariables){
 	int sommeClauses = 0;
 
 	while( retenue == 0){
-		cnf* currentCNF = formuleCNF;
-
-		while (currentCNF != NULL){
+		printf("\n");
+		for (int i = 0; i < P_nlit(formuleCNF); ++i)
+		{
+			printf("%d, ", valueVars[i]);
+		}
+		printf("\n");
+		clause* currentClause = P_getclse(formuleCNF);
+		sommeClauses = 0;
+		while (currentClause != NULL){
 			int valueClausei = 0 ;
-			clause* currentLit = currentCNF->clse;
+			litteral* currentLit = P_getlit(currentClause);
 			
 			while(currentLit != NULL){
-				int litteral = currentLit->litt;
+				int litteral = P_getval(currentLit);
 				printf("%d\n", litteral );
 				if (litteral < 0){
-					valueClausei = valueClausei || ~(valueVars[-litteral]);
+					valueClausei = (valueClausei || !(valueVars[-litteral-1]));
 				}
 				else {
-					valueClausei = valueClausei || (valueVars[litteral-1]) ;
-				}				
+					valueClausei = (valueClausei || (valueVars[litteral-1])) ;
+				}
+				currentLit = P_nextlit(currentLit);			
 			}
 			if (valueClausei == 1){
 				sommeClauses++;
 			}
+			currentClause = P_nextclse(currentClause);
 		}
-		if (sommeClauses == nclauses){
+		if (sommeClauses == P_nclse(formuleCNF)){
 			sat = 1;
 			break;
 		}
-		retenue = next_env(valueVars, nvariables);
+		retenue = next_env(valueVars, P_nlit(formuleCNF));
+
 	}
 	if (sat){
-		printf("SAT\n");
+		return 0;
 	}
 	else {
-		printf("UNSAT\n");
+		free(valueVars);
+		return 1;
 	}
-	return 0;
 }
-*/
 
-cnf* parse(int nbarg, char* args[]){
-	cnf* formuleCNF;
-	formuleCNF = malloc(sizeof(cnf));
-	clause* currentClause;
-	currentClause = malloc(sizeof(clause));
-	formuleCNF->clse = currentClause;
-	litteral* currentLit;
-	currentLit = malloc(sizeof(litteral));
-	currentClause->lit = currentLit;
-	if (nbarg > 1){
-
-		if (strcmp(args[1],"p") == 0){
-			printf("P\n");
-
-			if (nbarg>4){
-
-				if (strcmp(args[2],"cnf") == 0){
-					printf("CNF\n");
-					formuleCNF->nblit = atoi(args[3]);
-					formuleCNF->nbclse = atoi(args[4]);
-					printf("%d litteraux et %d clauses\n",formuleCNF->nblit,formuleCNF->nbclse);
-
-					for (int i = 5; i < nbarg; ++i){
-
-						if (atoi(args[i]) == 0 && i != nbarg-1) {
-							printf("plop %d\n", atoi(args[i]));
-							currentClause->nextClause = malloc(sizeof(clause));
-							currentClause = currentClause->nextClause;
-							//free(currentLit);
-							currentClause->lit = malloc(sizeof(litteral));
-							currentLit = currentClause->lit;
-						}
-
-						else if (atoi(args[i]) != 0){
-							if (currentLit->val){
-								currentLit->nextLit = malloc(sizeof(litteral));
-								currentLit = currentLit->nextLit;
-							}	
-							printf("plop2 %d\n", atoi(args[i]));
-							currentLit->val = atoi(args[i]);
-							printf("plop3\n");
-						}
-					}
-				}
-			}
-
-			else {
-				printf("Pas CNF\n");
-			}
-
-		}
-
-		else if (strcmp(args[1],"c") == 0){
-			printf("Commentaire\n");
-		}
-	}
-
-	else {
-		printf("Pas d'arguments\n");
-	}
-	printf("%lu\n",sizeof(formuleCNF) );
-	return formuleCNF;
-}
 
 int main(int argc, char* argv[]){
-	
 	cnf* formule;
-	formule = parse(argc, argv);
-	//printf("%d\n",formule->clse->nextClause->litt );
-	printCNF(formule);
-	//solve(formule);
-	/*
-	cnf* formule;
-	formule = malloc(sizeof(cnf));
-	cnf* cformule;
-	cformule = formule;
-	cformule->clse = malloc(sizeof(clause));
-	cformule->clse->litt = 3;
-	printf("%d\n",cformule->clse->litt );
-	*/
+	int* res;
+	formule = P_parse(argc, argv);
+	res = malloc(P_nlit(formule)*sizeof(int));
+	int isSat = solve(formule, res);
+	if (isSat == 0){
+		printf("SAT\n"); 
+		for (int i = 0; i < P_nlit(formule); ++i)
+		{
+			printf("%d, ", res[i]);
+		}
+	}
+	else{
+		printf("UNSAT\n");
+	}
 }
