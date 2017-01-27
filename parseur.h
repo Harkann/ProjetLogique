@@ -36,4 +36,4 @@ extern cnf* P_parse(int nbarg, char* args[]);
 
 extern void P_printCNF(cnf* formuleCNF);
 
-#endif /* PRODUIT_H */
+#endif /* PARSEUR_H */

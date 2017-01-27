@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "parseur.h"
+#include "solveur.h"
 
 int next_env(int* tab_var, int nvariables){
 	int retenue = 1;
@@ -23,7 +24,7 @@ int next_env(int* tab_var, int nvariables){
 }
 
 // Solveur naïf
-int solve(cnf* formuleCNF, int* valueVars){
+int S_naif(cnf* formuleCNF, int* valueVars){
 	int sat = 0;
 	//valueVars = malloc(P_nlit(formuleCNF)*sizeof(int));
 	for (int i = 0; i < P_nlit(formuleCNF); ++i)
@@ -34,12 +35,6 @@ int solve(cnf* formuleCNF, int* valueVars){
 	int sommeClauses = 0;
 
 	while( retenue == 0){
-		printf("\n");
-		for (int i = 0; i < P_nlit(formuleCNF); ++i)
-		{
-			printf("%d, ", valueVars[i]);
-		}
-		printf("\n");
 		clause* currentClause = P_getclse(formuleCNF);
 		sommeClauses = 0;
 		while (currentClause != NULL){
@@ -48,7 +43,6 @@ int solve(cnf* formuleCNF, int* valueVars){
 			
 			while(currentLit != NULL){
 				int litteral = P_getval(currentLit);
-				printf("%d\n", litteral );
 				if (litteral < 0){
 					valueClausei = (valueClausei || !(valueVars[-litteral-1]));
 				}
@@ -75,24 +69,5 @@ int solve(cnf* formuleCNF, int* valueVars){
 	else {
 		free(valueVars);
 		return 1;
-	}
-}
-
-
-int main(int argc, char* argv[]){
-	cnf* formule;
-	int* res;
-	formule = P_parse(argc, argv);
-	res = malloc(P_nlit(formule)*sizeof(int));
-	int isSat = solve(formule, res);
-	if (isSat == 0){
-		printf("SAT\n"); 
-		for (int i = 0; i < P_nlit(formule); ++i)
-		{
-			printf("%d, ", res[i]);
-		}
-	}
-	else{
-		printf("UNSAT\n");
 	}
 }
