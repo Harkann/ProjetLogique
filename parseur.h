@@ -34,6 +34,8 @@ extern int P_getval(litteral* litteralCNF);
 
 extern cnf* P_parse(int nbarg, char* args[]);
 
+extern void P_remclse(cnf* formuleCNF, clause* clauseCNF);
+
 extern void P_printCNF(cnf* formuleCNF);
 
 #endif /* PARSEUR_H */
