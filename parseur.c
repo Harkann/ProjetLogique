@@ -51,77 +51,19 @@ void P_remclse(cnf* formuleCNF, clause* remClause){
 	while (currentClause != NULL){
 		if (currentClause == remClause){
 			previousClause->nextClause = currentClause->nextClause;
-			formuleCNF->nbclse --; 
-			free(currentClause);
+			printf("%d\n", formuleCNF->nbclse);
+			formuleCNF->nbclse --;
+			if(currentClause != NULL){
+				printf("plop1\n");
+				free(currentClause);
+				printf("plop1\n");
+			}
 		}
 		previousClause = currentClause;
 		currentClause = P_nextclse(currentClause);
 	}
 }
 
-
-
-
-/*
-cnf* P_parse(int nbarg, char* args[]){
-	cnf* formuleCNF;
-	formuleCNF = malloc(sizeof(cnf));
-	clause* currentClause;
-	currentClause = malloc(sizeof(clause));
-	formuleCNF->clse = currentClause;
-	litteral* currentLit;
-	currentLit = malloc(sizeof(litteral));
-	currentClause->lit = currentLit;
-	if (nbarg > 1){
-
-		if (strcmp(args[1],"p") == 0){
-			//printf("P\n");
-
-			if (nbarg>5){
-
-				if (strcmp(args[2],"cnf") == 0){
-					//printf("CNF\n");
-					formuleCNF->nblit = atoi(args[3]);
-					formuleCNF->nbclse = atoi(args[4]);
-					//printf("%d litteraux et %d clauses\n",formuleCNF->nblit,formuleCNF->nbclse);
-
-					for (int i = 5; i < nbarg; ++i){
-
-						if (atoi(args[i]) == 0 && i != nbarg-1) {
-							currentClause->nextClause = malloc(sizeof(clause));
-							currentClause = currentClause->nextClause;
-							currentClause->lit = malloc(sizeof(litteral));
-							currentLit = currentClause->lit;
-						}
-
-						else if (atoi(args[i]) != 0){
-							if (currentLit->val){
-								currentLit->nextLit = malloc(sizeof(litteral));
-								currentLit = currentLit->nextLit;
-							}	
-							currentLit->val = atoi(args[i]);
-						}
-					}
-				}
-			}
-
-			else {
-				printf("Pas CNF\n");
-			}
-
-		}
-
-		else if (strcmp(args[1],"c") == 0){
-			printf("Commentaire\n");
-		}
-	}
-
-	else {
-		printf("Pas d'arguments\n");
-	}
-	return formuleCNF;
-}
-*/
 cnf* P_parse(int nbarg, char* args[]){
 	cnf* formuleCNF;
 	formuleCNF = malloc(sizeof(cnf));

@@ -3,3 +3,7 @@
 
 all : main.c parseur.c parseur.h solveur.c solveur.h
 	gcc -Wall -o SATsolveur main.c solveur.c parseur.c 
+
+debug : main.c parseur.c parseur.h solveur.c solveur.h
+	gcc -Wall -o -g SATsolveur main.c solveur.c parseur.c 
+

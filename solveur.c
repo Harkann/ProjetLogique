@@ -7,29 +7,29 @@
 int next_env(int* tab_var, int nvariables){
 	int retenue = 1;
 	for (int i = nvariables-1 ; i > -1 ; --i){
-		if ((tab_var[i] + retenue) == 1){
-			tab_var[i] = 1;
-			retenue = 0;
-		}
-		else if ((tab_var[i] + retenue) == 2){
-			tab_var[i] = 0;
-			retenue = 1;
-		}
-		else {
-			tab_var[i] = 0;
-			retenue = 0;
+		if (tab_var[i] != 2){
+			if ((tab_var[i] + retenue) == 1){
+				tab_var[i] = 1;
+				retenue = 0;
+			}
+			else if ((tab_var[i] + retenue) == 2){
+				tab_var[i] = 0;
+				retenue = 1;
+			}
+			else {
+				tab_var[i] = 0;
+				retenue = 0;
+			}
+			printf("%d",tab_var[i]);
 		}
 	}
+	printf("\n");
 	return retenue;
 }
 
 // Solveur naïf
 int S_naif(cnf* formuleCNF, int* valueVars){
 	int sat = 0;
-	for (int i = 0; i < P_nlit(formuleCNF); ++i)
-	{
-		valueVars[i] = 0;
-	}
 	int retenue = 0;
 	int sommeClauses = 0;
 	clause* currentClause;
@@ -37,7 +37,7 @@ int S_naif(cnf* formuleCNF, int* valueVars){
 	while( retenue == 0){
 		if (formuleCNF != NULL){
 			currentClause = P_getclse(formuleCNF);
-			printf("plip2\n");
+//			printf("plip2\n");
 		}
 		else {
 			printf("plip3\n");
@@ -46,12 +46,12 @@ int S_naif(cnf* formuleCNF, int* valueVars){
 		sommeClauses = 0;
 		
 		while (currentClause != NULL){
-			printf("plip4\n");
+			//printf("plip4\n");
 			int valueClausei = 0 ;
 			litteral* currentLit = P_getlit(currentClause);
-			printf("plip4.5\n");
+			//printf("plip4.5\n");
 			while(currentLit != NULL){
-				printf("plip5\n");
+			//	printf("plip5\n");
 				int litteral = P_getval(currentLit);
 				if (litteral < 0){
 					valueClausei = (valueClausei || !(valueVars[-litteral-1]));
@@ -72,16 +72,10 @@ int S_naif(cnf* formuleCNF, int* valueVars){
 			printf("plip6.5, sat %d\n", sat);
 			break;
 		}
-		printf("plip7\n");
 		retenue = next_env(valueVars, P_nlit(formuleCNF));
+		printf("plip7\n");
 	}
-	if (sat){
-		return 1;
-	}
-	else {
-		free(valueVars);
-		return 0;
-	}
+	return sat;
 }
 
 
@@ -106,79 +100,133 @@ int next_envD(int* tab_var, int nvariables){
 	return retenue;
 }
 
-//Solveur DPLL
-int S_DPLL(cnf* formuleCNF){//, int* valueVars){
-	char appVars[P_nlit(formuleCNF)][2];
-	int *valueVars = malloc(P_nlit(formuleCNF)*sizeof(int));
+//Check si la clause est vide.
+int isEmpty(clause* currentClause){
+	printf("\t isEmptyStart\n");
+	if (P_getval(P_getlit(currentClause)) == 0){
+		printf("\t isEmptyEnd\n");
+		return 1;
+	}
+	else {
+		printf("\t isNOTEmptyEnd\n");
+		return 0;
+	}
+}
+
+//initialise les valeurs des litteraux à 0.
+int* setVarsDPLL(char(*appVars)[2], cnf* formuleCNF){
+	printf("\t setVarsDPLLStart\n");
+	int* valueVars = malloc(P_nlit(formuleCNF)*sizeof(int));
 	for (int i = 0; i < P_nlit(formuleCNF); ++i)
 	{
 		valueVars[i] = 0;
-		// le litteral est au moins uen fois negatif si [0] = 1
+		// le litteral est au moins une fois negatif si [0] = 1
 		appVars[i][0] = 0;
 		// le litteral est au moins une fois positif si [1] =1
 		appVars[i][1] = 0;
 	}
+	printf("\t setVarsDPLLEnd\n");
+	return valueVars;
+}
+
+//Check si le litteral est seul dans la clause.
+void isAlone(int * valueVars, litteral* currentLit){
+	printf("\t isAloneStart\n");
+	if (P_getval(currentLit) > 0){
+		valueVars[P_getval(currentLit)-1] = 2;
+	}
+	else{
+		valueVars[-P_getval(currentLit)-1] = 2;
+	}
+	printf("\t isAloneEnd\n");
+}
+
+//Check if the litteral apparait positivement ou négativement.
+void isPosNeg(char(*appVars)[2], litteral* currentLit){
+	printf("\t isPosNegStart\n");
+	while (currentLit != NULL){
+
+		if (P_getval(currentLit) < 0)
+		{
+			printf("\t \tnegatif\n");
+			appVars[abs(P_getval(currentLit))-1][0] = 1;
+		}
+		else if (P_getval(currentLit) > 0){
+			printf("\t \tpositif\n");
+			appVars[P_getval(currentLit)-1][1] = 1;
+		}
+		printf("\t \t Litteral : %d\n", P_getval(currentLit));
+		currentLit = P_nextlit(currentLit);
+	}
+	printf("\t isPosNegEnd\n");
+}
+
+
+//Solveur DPLL
+int S_DPLL(cnf* formuleCNF){
+	char appVars[P_nlit(formuleCNF)][2];
+	int* valueVars = setVarsDPLL(appVars, formuleCNF);
 	clause* currentClause = P_getclse(formuleCNF);
 	litteral* currentLit = P_getlit(currentClause);
+	
 	while (currentClause != NULL){
-		currentLit = P_getlit(currentClause);
-		if (P_getval(currentLit) == 0){
-			printf("clause vide\n");
-			printf("UNSAT\n");
+		printf("Check Clause\n");
+		if (isEmpty(currentClause)) {
 			return 1;
 		}
+		
 		else if (P_nextlit(currentLit) == NULL){
-			printf("plop1\n");
-			if (P_getval(currentLit) > 0){
-				valueVars[P_getval(currentLit)-1] = 2;
-			}
-			else{
-				valueVars[-P_getval(currentLit)-1] = 2;
-			}
+			isAlone(valueVars, currentLit);
 		}
+
 		else{
-			printf("plop2\n");
-			while (currentLit != NULL){
-				printf("plop3\n");
-				if (P_getval(currentLit) < 0)
-				{
-					appVars[-P_getval(currentLit)-1][0] = 1;
-				}
-				else if (P_getval(currentLit) > 0){
-					appVars[P_getval(currentLit)-1][1] = 1;
-				}
-				printf("plop4 %d\n", P_getval(currentLit));
-				currentLit = P_nextlit(currentLit);
-				printf("plop5\n");
-			}
+			isPosNeg(appVars, currentLit);
 		}
 		currentClause = P_nextclse(currentClause);
-		printf("plop6\n");
-	}
-	printf("plop6.5\n");
-	currentClause = P_getclse(formuleCNF);
-	printf("plop7\n");
-	while (currentClause != NULL){
-		currentLit = P_getlit(currentClause);
-		printf("plop8\n");
-		while (currentLit != NULL){
-			{
-				if (appVars[abs(P_getval(currentLit))][0]+appVars[abs(P_getval(currentLit))][1] == 1){
-					P_remclse(formuleCNF, currentClause);
-				}
-				currentLit = P_nextlit(currentLit);
-				printf("plop9\n");
-			}
-			if (currentClause != NULL){
-				currentClause = P_nextclse(currentClause);
-				if (currentClause != NULL){
-					currentLit = P_getlit(currentClause);
-				}
-			}
-			printf("plop10\n");
+		if (currentClause != NULL){
+			currentLit = P_getlit(currentClause);
 		}
 	}
+
+	currentClause = P_getclse(formuleCNF);
+	while (currentClause != NULL && P_nclse(formuleCNF)){
+		printf("%d\n", P_nclse(formuleCNF));
+		printf("Check SupressionClause\n");
+		currentLit = P_getlit(currentClause);
+
+		while (currentLit != NULL && P_nclse(formuleCNF)){
+			printf("\t Litteral %d\n", P_getval(currentLit));
+			printf("appVars : %d, %d\n", appVars[abs(P_getval(currentLit))-1][0], appVars[abs(P_getval(currentLit))-1][1]);
+			printf("%d\n", P_nclse(formuleCNF));
+			if (appVars[abs(P_getval(currentLit))-1][0]+appVars[abs(P_getval(currentLit))-1][1] == 1){
+				printf("\t SupressionStart\n");
+				P_remclse(formuleCNF, currentClause);
+				printf("\t SupressionEnd\n");
+				break;
+			}
+
+			if (currentLit != NULL){
+				if (P_nextlit(currentLit) != NULL)
+				printf("\t NextLit\n");
+				currentLit = P_nextlit(currentLit);
+			}
+		}
+		if (currentClause != NULL && P_nclse(formuleCNF)){
+			printf("\t NextClause\n");
+			currentClause = P_nextclse(currentClause);
+			if (currentClause != NULL){
+				printf("\t NextLitClause\n");
+				currentLit = P_getlit(currentClause);
+			}
+
+			else{
+				break;
+			}
+		}
+		printf("Check SupressionEnd\n");
+		
+	}
 	int isSat = S_naif(formuleCNF, valueVars);
-	printf("plop11, isSat %d\n",isSat );
+	printf("SAT ? %d\n",isSat );
 	return isSat;
 }

@@ -3,6 +3,6 @@
 
 extern int S_naif(cnf* formuleCNF, int* valueVars);
 
-extern int S_DPLL(cnf* formuleCNF);//, int* valueVars);
+extern int S_DPLL(cnf* formuleCNF);
 
-#endif /* PARSEUR_H */
+#endif /* SOLVEUR_H */
