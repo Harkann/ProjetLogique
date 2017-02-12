@@ -1,0 +1,107 @@
+\documentclass{report}
+\usepackage{minted}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\title{Projet Logique\thanks{Chargé de projet : François THIRE}}
+\author{Michaël PAULON}
+\date{L3 informatique ENS Cachan 2016-2017}
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+
+\section{Langages utilisés}
+
+\paragraph{Python3.5} pour la résolution de problèmes
+
+\paragraph{C} pour le SAT solveur
+
+\section{Problèmes traités}
+- Sudoku
+
+\chapter{Solveurs}
+
+\section{Structure du projet}
+
+\subsection{Solveur de Sudoku}
+
+\paragraph{Fonctionnement}:\\
+- Transcrit le Sudoku en formule CNF au format DIMACS.\\
+- Exécute le SAT solveur sur la formule générée.\\
+- Récupère la sortie du solveur et la convertie en sudoku résolu.\\
+- Ecrit cette solution dans ``sudoku.solved''
+
+\paragraph{Fichiers}:\\
+- sudoku.py
+
+\subsection{SAT Solveur}
+
+\paragraph{Fonctionnement}:\\
+- Parse la formule DIMACS. \\
+- Applique l'algorithme DPLL sur la formule. \\
+- Si la formule est satifiable, renvoie SAT et une instance la satisfaisant. \\
+- Sinon renvoie UNSAT.
+
+\paragraph{Fichiers}:\\
+- parseur.c / parseur.h \\
+- solveur.c / solveur.h \\
+- main.c
+
+%\subsection{Script de benchmark}
+
+\section{Utilisation}
+
+\subsection{Compilation}
+\begin{minted}{bash}
+make all
+\end{minted}
+
+\subsection{Pour tester le SAT solveur}
+
+\paragraph{Input}
+Un fichier contenant une formule CNF au format DIMACS.
+
+\paragraph{Commandes}
+\begin{minted}{bash}
+make all
+./SATsolveur $(cat lefichierCNF)
+\end{minted}
+
+\paragraph{Résultat}
+Produit un fichier ``cnf.solved'' contenant : \\
+- SAT ou UNSAT \\
+- si SAT : le status des différentes variables.
+
+\subsection{Pour tester le solveur de Sudoku}
+
+\paragraph{Input}
+Un fichier contenant le sudoku au format suivant :
+\begin{minted}{bash}
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+0 0 0|0 0 0|0 0 0
+\end{minted}
+Où 0 représente une case vide.
+
+\paragraph{Commandes}
+\begin{minted}{bash}
+make all
+python sudoku.py lefichierSudoku
+\end{minted}
+
+\paragraph{Résultat}
+Produit un fichier ``sudoku.solved'' contenant le sudoku résolu et l'affiche sur STDOUT.
+
+
+\chapter{Performances}
+
+\end{document}

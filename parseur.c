@@ -106,7 +106,7 @@ cnf* P_parse(int nbarg, char* args[]){
 						newCount = count+i;
 					}
 					count = newCount;
-					printf("count %d, nbarg %d\n",count, nbarg );
+					//printf("count %d, nbarg %d\n",count, nbarg );
 				}
 			}
 
@@ -117,10 +117,9 @@ cnf* P_parse(int nbarg, char* args[]){
 		}
 
 		else if (strcmp(args[count],"c") == 0){
-			printf("Commentaire\n");
 		}
 		else {
-			printf("Pas d'arguments\n");
+			//printf("%s\n",args[count]);
 		}
 	}
 	return formuleCNF;
