@@ -84,30 +84,6 @@ int* setVarsDPLL(cnf* formuleCNF){
 	return valueVars;
 }
 
-//Check si le litteral est seul dans la clause.
-void isAlone(int * valueVars, litteral* currentLit){
-	if (P_getval(currentLit) > 0){
-		valueVars[P_getval(currentLit)-1] = 2;
-	}
-	else{
-		valueVars[-P_getval(currentLit)-1] = 2;
-	}
-}
-
-//Check si le litteral apparait positivement ou négativement.
-void isPosNeg(char(*appVars)[2], clause* currentClause){
-	litteral* currentLit = P_getlit(currentClause);
-	while (currentLit != NULL){
-		if (P_getval(currentLit) < 0){
-			appVars[abs(P_getval(currentLit))-1][0] = 1;
-		}
-		else if (P_getval(currentLit) > 0){
-			appVars[P_getval(currentLit)-1][1] = 1;
-		}
-		currentLit = P_nextlit(currentLit);
-	}
-}
-
 //Check si il y a une clause est vide.
 int CheckIfEmpty(cnf* formuleCNF, int* valueVars){
 	clause* currentClause = P_getclse(formuleCNF);
@@ -145,7 +121,7 @@ int isPureorUnit(cnf* formuleCNF, int* valueVars){
 
 		if (tailleClause == 1){
 			l = P_getval(P_getlit(currentClause));
-			if (valueVars[abs(l)-1] != 0){
+			if (valueVars[abs(l)-1] == 0){
 				return l;
 			}
 		}
@@ -225,6 +201,7 @@ int isSat(cnf* formuleCNF, int* valueVars){
 }
 
 void simplification(cnf* formuleCNF, int* valueVars){
+	printf("Simplify\n");
 	clause* currentClause = P_getclse(formuleCNF);
 	clause* precedClause = currentClause;
 	int skipC;
@@ -236,6 +213,7 @@ void simplification(cnf* formuleCNF, int* valueVars){
 		while (currentLit != NULL){
 			skipL = 0;
 			if (P_getval(currentLit) > 0 && valueVars[P_getval(currentLit)-1] == 1){
+				printf("delete clause\n");
 				if (currentClause == precedClause){
 					P_setClseForm(formuleCNF, P_nextclse(currentClause));
 					currentClause = P_getclse(formuleCNF);
@@ -250,6 +228,7 @@ void simplification(cnf* formuleCNF, int* valueVars){
 				break;
 			}
 			else if (P_getval(currentLit) < 0 && valueVars[-P_getval(currentLit)-1] == -1){
+				printf("delete clause\n");
 				if (currentClause == precedClause){
 					P_setClseForm(formuleCNF, P_nextclse(currentClause));
 					currentClause = P_getclse(formuleCNF);
@@ -264,6 +243,7 @@ void simplification(cnf* formuleCNF, int* valueVars){
 				break;
 			}
 			if (P_getval(currentLit) > 0 && valueVars[P_getval(currentLit)-1] == -1){
+				printf("delete lit\n");
 				if (currentLit == precedLit){
 					P_setLitClse(currentClause, P_nextlit(currentLit));
 					currentLit = P_getlit(currentClause);
@@ -277,6 +257,7 @@ void simplification(cnf* formuleCNF, int* valueVars){
 				
 			}
 			else if (P_getval(currentLit) < 0 && valueVars[-P_getval(currentLit)-1] == 1){
+				printf("delete lit\n");
 				if (currentLit == precedLit){
 					P_setLitClse(currentClause, P_nextlit(currentLit));
 					currentLit = P_getlit(currentClause);
@@ -360,9 +341,9 @@ int DPLL(cnf* formuleCNF, int* valueVars){
 //permet d'initialiser les valueVars
 int S_initDPLL(cnf* formuleCNF){ 
 	int* valueVars = setVarsDPLL(formuleCNF);
-	FILE *f;
-	f = fopen("cnf.solved", "w");
 	if (DPLL(formuleCNF, valueVars)){
+		FILE *f;
+		f = fopen("cnf.solved", "w");
 		fprintf(f, "SAT\n");
 		for (int i = 0; i < P_nlit(formuleCNF); ++i)
 		{
@@ -373,6 +354,8 @@ int S_initDPLL(cnf* formuleCNF){
 		return 1;
 	}
 	else {
+		FILE *f;
+		f = fopen("cnf.solved", "w");
 		fprintf(f, "UNSAT\n");
 		fclose(f);
 		return 0;

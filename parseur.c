@@ -46,20 +46,56 @@ int P_getval(litteral* litteralCNF){
 }
 
 void P_copyCNF(cnf* from, cnf* to){
+	if (from == NULL || to == NULL){
+		perror("Empty cnf");
+		return;
+	}
 	to->nblit = from->nblit;
 	to->nbclse = from->nbclse;
 	clause* fromClause = from->clse;
 	clause* toClause = malloc(sizeof(clause));
 	to->clse = toClause;
-	toClause->lit = fromClause->lit;
-	clause* toC = toClause;
-	fromClause = fromClause->nextClause;
-	while (fromClause != NULL){
-		toC->nextClause = malloc(sizeof(clause));
-		toC = toC->nextClause;
-		toC->lit = fromClause->lit;
-		fromClause = fromClause->nextClause;
+	if (fromClause->lit == NULL){
+		toClause->lit = NULL;
 	}
+	litteral* fromLit = fromClause->lit;
+	litteral* toLit = malloc(sizeof(litteral));
+	toClause->lit = toLit;
+	toLit->val = fromLit->val;
+	litteral* litt = toLit;
+	fromLit = fromLit->nextLit;
+	while (fromLit != NULL){
+		litt->nextLit = malloc(sizeof(litteral));
+		litt = litt->nextLit;
+		litt->val = fromLit->val;
+		fromLit = fromLit->nextLit;
+	}
+	litt->nextLit = NULL;
+	clause* claus = toClause;
+	fromClause = fromClause->nextClause;
+	while(fromClause != NULL)
+    {
+      claus->nextClause = malloc(sizeof(clause));
+      claus = claus->nextClause;
+      //p->c = fsrc->c;
+      if(fromClause->lit == NULL) toClause->lit = NULL;
+      fromLit = toClause->lit;
+      toLit = malloc(sizeof(litteral));
+      claus->lit = toLit;
+      toLit->val = fromLit->val;
+      litt = toLit;
+      fromLit = fromLit->nextLit;	
+      while(fromLit != NULL)
+        {
+          litt->nextLit = malloc(sizeof(litteral));
+          litt = litt->nextLit;
+          litt->val = fromLit->val;
+          fromLit = fromLit->nextLit;
+        }
+      litt->nextLit = NULL;
+      fromClause = fromClause->nextClause;
+    }
+  claus->nextClause = NULL;
 }
 
 void P_setnclse(cnf* formuleCNF, int nclses){
