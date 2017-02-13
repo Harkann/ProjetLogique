@@ -37,7 +37,6 @@ int S_naif(cnf* formuleCNF, int* valueVars){
 	while( retenue == 0){
 		if (formuleCNF != NULL){
 			currentClause = P_getclse(formuleCNF);
-//			printf("plip2\n");
 		}
 		else {
 			printf("plip3\n");
@@ -46,12 +45,9 @@ int S_naif(cnf* formuleCNF, int* valueVars){
 		sommeClauses = 0;
 		
 		while (currentClause != NULL){
-			//printf("plip4\n");
 			int valueClausei = 0 ;
 			litteral* currentLit = P_getlit(currentClause);
-			//printf("plip4.5\n");
 			while(currentLit != NULL){
-			//	printf("plip5\n");
 				int litteral = P_getval(currentLit);
 				if (litteral < 0){
 					valueClausei = (valueClausei || !(valueVars[-litteral-1]));
@@ -78,166 +74,93 @@ int S_naif(cnf* formuleCNF, int* valueVars){
 	return sat;
 }
 
-//Check si la clause est vide.
-int isEmpty(clause* currentClause, int* valueVars){
-	litteral* currentLit = P_getlit(currentClause);
-	printf("\t isEmptyStart\n");
-	int valueClausei = 0;
-	while(currentLit){
-			int litteral = P_getval(currentLit);
-			printf("\t \t litteral %d\n", litteral);
-			if (litteral < 0){
-				if (-(valueVars[-litteral-1]) >= 0){
-					return 0;
-				}
-			}
-			else {
-				if (valueVars[-litteral-1] >= 0 ){
-					return 0;
-				}
-			}
-			currentLit = P_nextlit(currentLit);			
-			printf("valueClausei, %d\n", valueClausei);
-		}
-	return 1;
-}
-
 //initialise les valeurs des litteraux à 0.
 int* setVarsDPLL(cnf* formuleCNF){
-	printf("\t setVarsDPLLStart\n");
 	int* valueVars = malloc(P_nlit(formuleCNF)*sizeof(int));
 	for (int i = 0; i < P_nlit(formuleCNF); ++i)
 	{
 		valueVars[i] = 0;
 	}
-	printf("\t setVarsDPLLEnd\n");
 	return valueVars;
 }
 
 //Check si le litteral est seul dans la clause.
 void isAlone(int * valueVars, litteral* currentLit){
-	printf("\t isAloneStart\n");
 	if (P_getval(currentLit) > 0){
 		valueVars[P_getval(currentLit)-1] = 2;
 	}
 	else{
 		valueVars[-P_getval(currentLit)-1] = 2;
 	}
-	printf("\t isAloneEnd\n");
 }
 
 //Check si le litteral apparait positivement ou négativement.
 void isPosNeg(char(*appVars)[2], clause* currentClause){
 	litteral* currentLit = P_getlit(currentClause);
-	printf("\t isPosNegStart\n");
 	while (currentLit != NULL){
-
-		if (P_getval(currentLit) < 0)
-		{
-			printf("\t \tnegatif\n");
+		if (P_getval(currentLit) < 0){
 			appVars[abs(P_getval(currentLit))-1][0] = 1;
 		}
 		else if (P_getval(currentLit) > 0){
-			printf("\t \tpositif\n");
 			appVars[P_getval(currentLit)-1][1] = 1;
 		}
-		printf("\t \t Litteral : %d\n", P_getval(currentLit));
 		currentLit = P_nextlit(currentLit);
 	}
-	printf("\t isPosNegEnd\n");
 }
 
 //Check si il y a une clause est vide.
 int CheckIfEmpty(cnf* formuleCNF, int* valueVars){
 	clause* currentClause = P_getclse(formuleCNF);
-	printf("\t isEmptyStart\n");
 	while (currentClause != NULL){
-		printf("Check Clause\n");
-		if (isEmpty(currentClause, valueVars)) {
-			printf("La clause est vide\n");
+		if (P_getlit(currentClause) == NULL) {
 			return 1;
 		}
 		currentClause = P_nextclse(currentClause);
 	}
 	return 0;
 }
-//check si il y a un litteral pur
-int isLitPure(cnf* formuleCNF, int* valueVars){ 
-	printf("begin isLitPure\n");
+
+int isPureorUnit(cnf* formuleCNF, int* valueVars){
 	clause* currentClause = P_getclse(formuleCNF);
 	char appVars[P_nlit(formuleCNF)][2];
-	while (currentClause){
-		isPosNeg(appVars, currentClause);
-		currentClause = P_nextclse(currentClause);
-	}
 	for (int i = 0; i < P_nlit(formuleCNF); ++i)
 	{
-		if(appVars[i][0]+appVars[i][1] == 1){
-			return i;
-		}
+		appVars[i][0] = 0;
+		appVars[i][1] = 0;
 	}
-	return 0;
-}
-
-int isUnit(cnf* formuleCNF,int* valueVars){
-	return 0;
-}
-
-int selectLit(cnf* formuleCNF, int* valueVars){
-	printf("selectLit\n");
-	for (int i = 0; i < P_nlit(formuleCNF); ++i)
-	{
-		printf("%d", valueVars[i]);
-		if (valueVars[i] == 0){
-			return i;
-		}
-	}
-	printf("\n");
-	return -1;
-}
-
-int isSat(cnf* formuleCNF, int* valueVars){
-	printf("begin isSat\n");
-	clause* currentClause;
-	if (formuleCNF != NULL){
-		currentClause = P_getclse(formuleCNF);
-	}
-	else {
-		return 1;
-	}
-	int sommeClauses = 0;
-
+	int l;
+	int tailleClause = 0;
 	while (currentClause != NULL){
-		int valueClausei = 0 ;
 		litteral* currentLit = P_getlit(currentClause);
-		while(currentLit != NULL){
-			int litteral = P_getval(currentLit);
-			printf("\t \t litteral %d\n", litteral);
-			if (litteral < 0){
-				if (-(valueVars[-litteral-1]) > 1){
-					valueClausei = 1;
-				}
+		while (currentLit != NULL){
+			if (P_getval(currentLit) < 0){
+				appVars[abs(P_getval(currentLit))-1][0] = 1;
 			}
-			else {
-				if (valueVars[-litteral-1] > 1){
-					valueClausei = 1;
-				}
+			else if (P_getval(currentLit) > 0){
+				appVars[P_getval(currentLit)-1][1] = 1;
 			}
-			currentLit = P_nextlit(currentLit);			
-			printf("valueClausei, %d\n", valueClausei);
+			currentLit = P_nextlit(currentLit);
+			tailleClause ++;
 		}
-		if (valueClausei == 1){
-			sommeClauses++;
+
+		if (tailleClause == 1){
+			l = P_getval(P_getlit(currentClause));
+			if (valueVars[abs(l)-1] != 0){
+				return l;
+			}
 		}
 		currentClause = P_nextclse(currentClause);
 	}
-	printf("sommeClauses, %d\n", sommeClauses );
-	if (sommeClauses == P_nclse(formuleCNF)){
-		return 1;
+	for (int i = 0; i < P_nlit(formuleCNF); ++i)
+	{
+		if(appVars[i][0]==1 && appVars[i][1] == 0){
+			return -(i+1);
+		}
+		else if (appVars[i][0]==0 && appVars[i][1] == 1){
+			return (i+1);
+		}
 	}
-	else {
-		return 0;
-	}
+	return 0;
 }
 
 void printVal(cnf* formuleCNF, int* valueVars){
@@ -248,42 +171,187 @@ void printVal(cnf* formuleCNF, int* valueVars){
 	printf("\n");
 }
 
+int selectLit(cnf* formuleCNF, int* valueVars){
+	int selected = -1;
+	for (int i = 0; i < P_nlit(formuleCNF); ++i)
+	{
+		if (valueVars[i] == 0){
+			printf("selected %d\n",i );
+			selected =  i;
+			break;
+		}
+	}
+	return selected;
+}
+
+int isSat(cnf* formuleCNF, int* valueVars){
+	printf("FisSat\n");
+	clause* currentClause;
+	if (formuleCNF != NULL){
+		currentClause = P_getclse(formuleCNF);
+	}
+	else {
+		return 1;
+	}
+	int sommeClauses = 0;
+	while (currentClause != NULL){
+		int valueClausei = 0 ;
+		litteral* currentLit = P_getlit(currentClause);
+		while(currentLit != NULL){
+			int litteral = P_getval(currentLit);
+			if (litteral < 0){
+				if (-(valueVars[-litteral-1]) >= 1){
+					valueClausei = 1;
+				}
+			}
+			else {
+				if (valueVars[litteral-1] >= 1){
+					valueClausei = 1;
+				}
+			}
+			currentLit = P_nextlit(currentLit);			
+		}
+		if (valueClausei == 1){
+			sommeClauses++;
+		}
+		currentClause = P_nextclse(currentClause);
+	}
+	if (sommeClauses == P_nclse(formuleCNF)){
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+void simplification(cnf* formuleCNF, int* valueVars){
+	clause* currentClause = P_getclse(formuleCNF);
+	clause* precedClause = currentClause;
+	int skipC;
+	int skipL;
+	while (currentClause != NULL){
+		litteral* currentLit = P_getlit(currentClause);
+		litteral* precedLit = currentLit;
+		skipC = 0;
+		while (currentLit != NULL){
+			skipL = 0;
+			if (P_getval(currentLit) > 0 && valueVars[P_getval(currentLit)-1] == 1){
+				if (currentClause == precedClause){
+					P_setClseForm(formuleCNF, P_nextclse(currentClause));
+					currentClause = P_getclse(formuleCNF);
+					precedClause = currentClause;
+				}
+				else{
+					P_setClseClse(precedClause, P_nextclse(currentClause));
+					currentClause = P_nextclse(precedClause);
+				}
+				P_setnclse(formuleCNF, P_nclse(formuleCNF)-1);
+				skipC = 1;
+				break;
+			}
+			else if (P_getval(currentLit) < 0 && valueVars[-P_getval(currentLit)-1] == -1){
+				if (currentClause == precedClause){
+					P_setClseForm(formuleCNF, P_nextclse(currentClause));
+					currentClause = P_getclse(formuleCNF);
+					precedClause = currentClause;
+				}
+				else{
+					P_setClseClse(precedClause, P_nextclse(currentClause));
+					currentClause = P_nextclse(precedClause);
+				}
+				P_setnclse(formuleCNF, P_nclse(formuleCNF)-1);
+				skipC = 1;
+				break;
+			}
+			if (P_getval(currentLit) > 0 && valueVars[P_getval(currentLit)-1] == -1){
+				if (currentLit == precedLit){
+					P_setLitClse(currentClause, P_nextlit(currentLit));
+					currentLit = P_getlit(currentClause);
+					precedLit = currentLit;
+					skipL = 1;
+				}
+				else{
+					P_setLitLit(precedLit, P_nextlit(currentLit));
+					currentLit = P_nextlit(precedLit);
+				}
+				
+			}
+			else if (P_getval(currentLit) < 0 && valueVars[-P_getval(currentLit)-1] == 1){
+				if (currentLit == precedLit){
+					P_setLitClse(currentClause, P_nextlit(currentLit));
+					currentLit = P_getlit(currentClause);
+					precedLit = currentLit;
+					skipL = 1;
+				}
+				else{
+					P_setLitLit(precedLit, P_nextlit(currentLit));
+					currentLit = P_nextlit(precedLit);
+				}
+				
+			}
+			precedLit = currentLit;
+			if (!skipL){
+				if (currentLit != NULL){
+					currentLit = P_nextlit(currentLit);
+				}
+			}
+			
+		}
+		if (!skipC){
+			precedClause = currentClause;
+			currentClause = P_nextclse(currentClause);
+		}
+	}
+}
 //Solveur DPLL
 int DPLL(cnf* formuleCNF, int* valueVars){
 	int l;
-	if (isSat(formuleCNF, valueVars)) { //si la formule est vide
+	if (P_getclse(formuleCNF) == NULL){//si formule vide alors satisfiable
+		printf("formule vide\n");
 		return 1;
 	}
 	else if (CheckIfEmpty(formuleCNF, valueVars)){ //si il y a une clause vide
+		printf("EmptyClause\n");
 		return 0;
 	}
-	else if ((l = isLitPure(formuleCNF,valueVars))){ // un litteral pur l -> l=true
-		printf("begin PURE\n");
-		valueVars[l] = 1;
+	else if ((l = isPureorUnit(formuleCNF,valueVars))){ // un litteral pur l -> l=true
+		printf("isLitPure\n");
+		if (l> 0){
+			valueVars[l-1] = 1;
+		}
+		else{
+			valueVars[-l-1] = -1;
+		}
+		simplification(formuleCNF, valueVars);
 		return DPLL(formuleCNF,valueVars);
 	}
-	else if ((l = isUnit(formuleCNF,valueVars))){ // une clause unitaire [l] -> l=true
-		printf("begin UNIT\n");
-		valueVars[l] = 1;
-		return DPLL(formuleCNF, valueVars);
-	}	
 	else {
-		printf("begin SELECTION\n");
 		l = selectLit(formuleCNF,valueVars);// on choisi un l dans F
-		printf("l SELECTION : %d\n", l);
 		if (l == -1){
-			printf("ERREUR SELECTION LITTERAL\n");
+			printf("invalid\n");
+			printVal(formuleCNF, valueVars);
 			return 0;
-		}  
-		valueVars[l] = 1; 
+		} 
+		// on copie la formule et les valeurs pour tester les deux solutions.
+		
+		int* valueVarsBis = malloc(P_nlit(formuleCNF)*sizeof(int));
+		for(int i=0 ; i<P_nlit(formuleCNF) ; i++) {
+			valueVarsBis[i] = valueVars[i];
+		}
+		cnf* formuleCNFBis = malloc(sizeof(cnf)); 
+		P_copyCNF(formuleCNF, formuleCNFBis);
+		valueVars[l] = 1;
+		valueVarsBis[l] = -1;
+		simplification(formuleCNF, valueVars);
 		printVal(formuleCNF, valueVars);
 		if (DPLL(formuleCNF, valueVars)){ //l=true
 			return 1;
 		}
 		else { // on set l=false
-			printf("mauvaise SELECTION\n");
-			valueVars[l] = -1;
-			return DPLL(formuleCNF, valueVars);
+			printf("BAD GUESS\n");
+			simplification(formuleCNFBis, valueVarsBis);
+			printVal(formuleCNFBis, valueVarsBis);
+			return DPLL(formuleCNFBis, valueVarsBis);
 		}
 	}
 }
@@ -292,5 +360,21 @@ int DPLL(cnf* formuleCNF, int* valueVars){
 //permet d'initialiser les valueVars
 int S_initDPLL(cnf* formuleCNF){ 
 	int* valueVars = setVarsDPLL(formuleCNF);
-	return DPLL(formuleCNF, valueVars);
+	FILE *f;
+	f = fopen("cnf.solved", "w");
+	if (DPLL(formuleCNF, valueVars)){
+		fprintf(f, "SAT\n");
+		for (int i = 0; i < P_nlit(formuleCNF); ++i)
+		{
+			fprintf(f,"%d",valueVars[i]);
+		}
+		fprintf(f,"\n");
+		fclose(f);
+		return 1;
+	}
+	else {
+		fprintf(f, "UNSAT\n");
+		fclose(f);
+		return 0;
+	}
 }

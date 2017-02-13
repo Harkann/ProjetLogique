@@ -1,4 +1,6 @@
-import numpy as np
+import sys                
+
+
 def parse(fileName):
 	fichier = open(fileName,"r")
 	counter = 0
@@ -12,7 +14,25 @@ def parse(fileName):
 		for i in range(len(newLine)):
 			newCase  = newLine[i].split(" ")
 			sudoku[-1].append(newCase)
-	sudoku = np.array(sudoku)
 	print(sudoku)
 
-for i 
+def convert (sudoku):
+	
+
+
+
+
+
+
+
+
+
+
+if (sys.argv):
+	try :
+		if (".input" in sys.argv[1]):
+			parse(sys.argv[1])
+		else :
+			print("[Error] : file name must end by .input")
+	except :
+		print("[Error] : Missing input file")

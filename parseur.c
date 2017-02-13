@@ -45,23 +45,38 @@ int P_getval(litteral* litteralCNF){
 	return litteralCNF->val;
 }
 
-void P_remclse(cnf* formuleCNF, clause* remClause){
-	clause* currentClause = formuleCNF->clse;
-	clause* previousClause;
-	while (currentClause != NULL){
-		if (currentClause == remClause){
-			previousClause->nextClause = currentClause->nextClause;
-			printf("%d\n", formuleCNF->nbclse);
-			formuleCNF->nbclse --;
-			if(currentClause != NULL){
-				printf("plop1\n");
-				free(currentClause);
-				printf("plop1\n");
-			}
-		}
-		previousClause = currentClause;
-		currentClause = P_nextclse(currentClause);
+void P_copyCNF(cnf* from, cnf* to){
+	to->nblit = from->nblit;
+	to->nbclse = from->nbclse;
+	clause* fromClause = from->clse;
+	clause* toClause = malloc(sizeof(clause));
+	to->clse = toClause;
+	toClause->lit = fromClause->lit;
+	clause* toC = toClause;
+	fromClause = fromClause->nextClause;
+	while (fromClause != NULL){
+		toC->nextClause = malloc(sizeof(clause));
+		toC = toC->nextClause;
+		toC->lit = fromClause->lit;
+		fromClause = fromClause->nextClause;
 	}
+}
+
+void P_setnclse(cnf* formuleCNF, int nclses){
+	formuleCNF->nbclse = nclses;
+}
+
+void P_setClseForm(cnf* formuleCNF, clause* setClause){
+	formuleCNF->clse = setClause;
+}
+void P_setClseClse(clause* currentClause, clause* setClause){
+	currentClause->nextClause = setClause;
+}
+void P_setLitClse(clause* currentClause, litteral* setLit){
+	currentClause->lit = setLit;
+}
+void P_setLitLit(litteral* currentLit, litteral* setLit){
+	currentLit->nextLit = setLit;
 }
 
 cnf* P_parse(int nbarg, char* args[]){
